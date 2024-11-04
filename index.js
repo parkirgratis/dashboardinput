@@ -5,5 +5,5 @@ import {redirect} from "https://cdn.jsdelivr.net/gh/jscroot/url@0.0.9/croot.js";
 
 //check cookie login
 if (getCookie("login")===""){
-    redirect("/signin");
+    redirect("/pages/admin/admin.html");
 }
