@@ -1,10 +1,10 @@
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
 import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
 
-// Menambahkan CSS SweetAlert2
+// Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
-// Fungsi untuk menampilkan SweetAlert saat membatalkan
+// Function to show SweetAlert on cancel
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -15,32 +15,40 @@ async function cancel() {
     }).then((result) => {
         if (result.isConfirmed) {
             localStorage.setItem('cancelToast', 'true');
-            window.location.href = 'admin.html';
+            window.location.href = 'index.html';
         }
-        // Jika pengguna menekan "Nevermind", tidak ada aksi yang dilakukan
+        // No action if "Nevermind" is selected
     });
 }
 
-// Pastikan DOM sudah dimuat sebelum menambahkan event listener
+// Function to retrieve a specific cookie value by name
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+// Ensure DOM is loaded before adding event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Ambil elemen form dan tambahkan event listener untuk submit
+    // Get form element and add event listener for submit
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
-            event.preventDefault(); // Mencegah form submit default
+            event.preventDefault(); // Prevent default form submission
 
-            // Ambil nilai token, longitude, dan latitude dari form
-            const token = document.getElementById("tokenForm").value;
+            // Retrieve token from cookies
+            const token = getCookie("login");
             const longitude = parseFloat(document.getElementById("long").value);
             const latitude = parseFloat(document.getElementById("lat").value);
 
-            // Validasi input longitude dan latitude
+            // Validate longitude and latitude input
             if (isNaN(longitude) || isNaN(latitude)) {
                 Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
                 return;
             }
 
-            // Buat request data
+            // Create request data
             const requestData = {
                 longitude,
                 latitude,
@@ -51,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "login": token, 
+                        "login": token,
                     },
                     body: JSON.stringify(requestData),
                 });
@@ -63,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 console.log("Data region:", data);
 
-                // Tampilkan data yang diterima (contoh menggunakan SweetAlert)
+                // Display received data (example using SweetAlert)
                 Swal.fire({
                     title: "Data Retrieved",
                     text: JSON.stringify(data),
@@ -76,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Tambahkan event listener untuk tombol cancel
+    // Add event listener for the cancel button
     const cancelButton = document.getElementById('cancelButton');
     if (cancelButton) {
         cancelButton.addEventListener('click', () => {
