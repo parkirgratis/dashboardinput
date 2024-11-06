@@ -26,42 +26,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ambil elemen form dan tambahkan event listener untuk submit
     const form = document.getElementById("locationForm");
     if (form) {
-        form.addEventListener("submit", function (event) {
+        form.addEventListener("submit", async function (event) {
             event.preventDefault(); // Mencegah form submit default
 
             // Ambil nilai token, longitude, dan latitude dari form
             const token = document.getElementById("tokenForm").value;
-            const longitude = document.getElementById("long").value;
-            const latitude = document.getElementById("lat").value;
+            const longitude = parseFloat(document.getElementById("long").value);
+            const latitude = parseFloat(document.getElementById("lat").value);
+
+            // Validasi input longitude dan latitude
+            if (isNaN(longitude) || isNaN(latitude)) {
+                Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
+                return;
+            }
 
             // Buat request data
             const requestData = {
-                longitude: parseFloat(longitude),
-                latitude: parseFloat(latitude),
+                longitude,
+                latitude,
             };
 
-            // Kirim request ke API dengan fetch
-            fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "login": token, 
-                },
-                body: JSON.stringify(requestData),
-            })
-            .then((response) => {
+            try {
+                const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "login": token, 
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
                 if (!response.ok) {
-                    throw new Error("Gagal mengambil data. Status: " + response.status);
+                    throw new Error("Failed to fetch data. Status: " + response.status);
                 }
-                return response.json();
-            })
-            .then((data) => {
+
+                const data = await response.json();
                 console.log("Data region:", data);
-                // Tampilkan data sesuai kebutuhan Anda, misalnya di halaman
-            })
-            .catch((error) => {
-                console.error("Terjadi kesalahan:", error);
-            });
+
+                // Tampilkan data yang diterima (contoh menggunakan SweetAlert)
+                Swal.fire({
+                    title: "Data Retrieved",
+                    text: JSON.stringify(data),
+                    icon: "success",
+                });
+            } catch (error) {
+                console.error("Error occurred:", error);
+                Swal.fire("Error", "There was an error retrieving the data.", "error");
+            }
         });
     }
 
