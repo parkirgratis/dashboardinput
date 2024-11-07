@@ -14,7 +14,7 @@ if (logoutButton) {
       showConfirmButton: false,
       timer: 2000,
     }).then(() => {
-      window.location.href = "/pages/login";
+      window.location.href = "./pages/login";
     });
   });
 }
