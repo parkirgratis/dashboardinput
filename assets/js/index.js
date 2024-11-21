@@ -7,5 +7,3 @@ import {redirect} from "https://cdn.jsdelivr.net/gh/jscroot/url@0.0.9/croot.js";
 if (getCookie("login")===""){
     redirect("/signin");
 }
-
-getJSON("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/user","login",getCookie("login"));
