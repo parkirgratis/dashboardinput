@@ -1,10 +1,10 @@
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
 import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
 
-// Add SweetAlert2 CSS
+
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
-// Function to show SweetAlert on cancel
+
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -17,11 +17,10 @@ async function cancel() {
             localStorage.setItem('cancelToast', 'true');
             window.location.href = 'index.html';
         }
-        // No action if "Nevermind" is selected
     });
 }
 
-// Function to retrieve a specific cookie value by name
+
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -29,58 +28,92 @@ function getCookie(name) {
     return null;
 }
 
-// Ensure DOM is loaded before adding event listeners
+
+function initializeMap() {
+    
+    const map = new ol.Map({
+        target: 'map',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM(),
+            }),
+        ],
+        view: new ol.View({
+            center: ol.proj.fromLonLat([106.830338, -6.175110]), 
+            zoom: 12,
+        }),
+    });
+
+    // Capture Longitude and Latitude on map click
+    map.on('click', function (event) {
+        const coordinate = ol.proj.toLonLat(event.coordinate);
+        document.getElementById("long").value = coordinate[0].toFixed(6);
+        document.getElementById("lat").value = coordinate[1].toFixed(6);
+    });
+}
+
+async function fetchDataFromPetapediaAPI() {
+    const petapediaAPI = "https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi";
+    const token = getCookie("login");
+
+    try {
+        const response = await fetch(petapediaAPI, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "login": token // Send token in the 'login' header
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched data from petapedia API:", data);
+
+        await sendDataToOwnAPI(data);
+    } catch (error) {
+        console.error("Error fetching data from petapedia API:", error.message);
+        Swal.fire("Error", "Failed to fetch data from petapedia's API.", "error");
+    }
+}
+
+// Send data to your backend
+async function sendDataToOwnAPI(data) {
+    const ownAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
+
+    try {
+        const response = await fetch(ownAPI, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log("Data successfully sent to backend:", result);
+
+        Swal.fire("Success", "Data successfully sent to backend.", "success");
+    } catch (error) {
+        console.error("Error sending data to backend:", error.message);
+        Swal.fire("Error", "Failed to send data to backend.", "error");
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Get form element and add event listener for submit
+    initializeMap();
+
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Retrieve token from cookies
-            const token = getCookie("login");
-            const longitude = parseFloat(document.getElementById("long").value);
-            const latitude = parseFloat(document.getElementById("lat").value);
-
-            // Validate longitude and latitude input
-            if (isNaN(longitude) || isNaN(latitude)) {
-                Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
-                return;
-            }
-
-            // Create request data
-            const requestData = {
-                longitude,
-                latitude,
-            };
-
-            try {
-                const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "login": token,
-                    },
-                    body: JSON.stringify(requestData),
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch data. Status: " + response.status);
-                }
-
-                const data = await response.json();
-                console.log("Data region:", data);
-
-                // Display received data (example using SweetAlert)
-                Swal.fire({
-                    title: "Data Retrieved",
-                    text: JSON.stringify(data),
-                    icon: "success",
-                });
-            } catch (error) {
-                console.error("Error occurred:", error);
-                Swal.fire("Error", "There was an error retrieving the data.", "error");
-            }
+            event.preventDefault();
+            await fetchDataFromPetapediaAPI(); // Fetch and process data
         });
     }
 
