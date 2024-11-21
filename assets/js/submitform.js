@@ -1,10 +1,10 @@
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
 import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
 
-
+// Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
-
+// Show cancel confirmation alert
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -20,7 +20,7 @@ async function cancel() {
     });
 }
 
-
+// Get cookie value by name
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -28,30 +28,14 @@ function getCookie(name) {
     return null;
 }
 
+// Capture Longitude and Latitude on map click
+map.on('click', function (event) {
+    const coordinate = ol.proj.toLonLat(event.coordinate);
+    document.getElementById("long").value = coordinate[0].toFixed(6);
+    document.getElementById("lat").value = coordinate[1].toFixed(6);
+});
 
-function initializeMap() {
-    
-    const map = new ol.Map({
-        target: 'map',
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM(),
-            }),
-        ],
-        view: new ol.View({
-            center: ol.proj.fromLonLat([106.830338, -6.175110]), 
-            zoom: 12,
-        }),
-    });
-
-    // Capture Longitude and Latitude on map click
-    map.on('click', function (event) {
-        const coordinate = ol.proj.toLonLat(event.coordinate);
-        document.getElementById("long").value = coordinate[0].toFixed(6);
-        document.getElementById("lat").value = coordinate[1].toFixed(6);
-    });
-}
-
+// Fetch data from Petapedia API
 async function fetchDataFromPetapediaAPI() {
     const petapediaAPI = "https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi";
     const token = getCookie("login");
@@ -106,6 +90,7 @@ async function sendDataToOwnAPI(data) {
     }
 }
 
+// Initialize map and set up event listeners
 document.addEventListener('DOMContentLoaded', () => {
     initializeMap();
 
