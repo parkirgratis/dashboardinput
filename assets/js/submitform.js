@@ -11,7 +11,7 @@ async function cancel() {
         text: "The change won't be saved",
         showDenyButton: true,
         confirmButtonText: "Yes",
-        denyButtonText: `Nevermind`,
+        denyButtonText: "Nevermind",
     }).then((result) => {
         if (result.isConfirmed) {
             localStorage.setItem('cancelToast', 'true');
@@ -28,13 +28,6 @@ function getCookie(name) {
     return null;
 }
 
-// Capture Longitude and Latitude on map click
-map.on('click', function (event) {
-    const coordinate = ol.proj.toLonLat(event.coordinate);
-    document.getElementById("long").value = coordinate[0].toFixed(6);
-    document.getElementById("lat").value = coordinate[1].toFixed(6);
-});
-
 // Fetch data from Petapedia API
 async function fetchDataFromPetapediaAPI() {
     const petapediaAPI = "https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi";
@@ -42,7 +35,7 @@ async function fetchDataFromPetapediaAPI() {
 
     try {
         const response = await fetch(petapediaAPI, {
-            method: "GET",
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "login": token // Send token in the 'login' header
@@ -90,14 +83,32 @@ async function sendDataToOwnAPI(data) {
     }
 }
 
-// Initialize map and set up event listeners
+// Capture Longitude and Latitude on map click
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize map and set up event listeners
     initializeMap();
 
+    // Get form element and add event listener for submit
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
-            event.preventDefault();
+            event.preventDefault(); // Prevent default form submission
+
+            const longitude = parseFloat(document.getElementById("long").value);
+            const latitude = parseFloat(document.getElementById("lat").value);
+
+            // Validate longitude and latitude input
+            if (isNaN(longitude) || isNaN(latitude)) {
+                Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
+                return;
+            }
+
+            // Create request data
+            const requestData = {
+                longitude,
+                latitude,
+            };
+
             await fetchDataFromPetapediaAPI(); // Fetch and process data
         });
     }
