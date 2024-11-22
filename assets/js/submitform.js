@@ -1,34 +1,3 @@
-import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
-import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
-
-// Add SweetAlert2 CSS
-addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
-
-// Function to show SweetAlert on cancel
-async function cancel() {
-    Swal.fire({
-        title: "Are you sure?",
-        text: "The change won't be saved",
-        showDenyButton: true,
-        confirmButtonText: "Yes",
-        denyButtonText: "Nevermind",
-    }).then((result) => {
-        if (result.isConfirmed) {
-            localStorage.setItem("cancelToast", "true");
-            window.location.href = "index.html";
-        }
-    });
-}
-
-// Function to retrieve a specific cookie value by name
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
-}
-
-// Ensure DOM is loaded before adding event listeners
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
@@ -44,7 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const requestData = { longitude, latitude };
+            // Properti JSON disesuaikan dengan backend
+            const requestData = { long: longitude, lat: latitude };
 
             try {
                 const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
