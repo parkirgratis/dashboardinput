@@ -47,12 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const requestData = { longitude, latitude };
 
             try {
-                // Simulate sending data to a server (replace with actual API call)
-                const response = await fetch("https://your-api-endpoint.example.com/save-location", {
+                const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                        "login": token,
                     },
                     body: JSON.stringify(requestData),
                 });
