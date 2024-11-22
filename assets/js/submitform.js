@@ -17,7 +17,6 @@ async function cancel() {
             localStorage.setItem("cancelToast", "true");
             window.location.href = "index.html";
         }
-        // No action if "Nevermind" is selected
     });
 }
 
@@ -31,31 +30,45 @@ function getCookie(name) {
 
 // Ensure DOM is loaded before adding event listeners
 document.addEventListener("DOMContentLoaded", () => {
-    // Get form element and add event listener for submit
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
             event.preventDefault(); // Prevent default form submission
 
-            // Retrieve token from cookies
             const token = getCookie("login");
             const longitude = parseFloat(document.getElementById("long").value);
             const latitude = parseFloat(document.getElementById("lat").value);
 
-            // Validate longitude and latitude input
             if (isNaN(longitude) || isNaN(latitude)) {
                 Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
                 return;
             }
 
-            // Create request data
             const requestData = { longitude, latitude };
 
-            // You can add logic here to process `requestData` using the token
+            try {
+                // Simulate sending data to a server (replace with actual API call)
+                const response = await fetch("https://your-api-endpoint.example.com/save-location", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (response.ok) {
+                    Swal.fire("Success", "Data has been successfully saved!", "success");
+                } else {
+                    const errorMessage = await response.text();
+                    Swal.fire("Error", `Failed to save data: ${errorMessage}`, "error");
+                }
+            } catch (error) {
+                Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
+            }
         });
     }
 
-    // Add event listener for the cancel button
     const cancelButton = document.getElementById("cancelButton");
     if (cancelButton) {
         cancelButton.addEventListener("click", cancel);
