@@ -4,7 +4,7 @@ import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js
 // Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
-// Show cancel confirmation alert
+// Function to show SweetAlert on cancel
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -14,86 +14,31 @@ async function cancel() {
         denyButtonText: "Nevermind",
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.setItem('cancelToast', 'true');
-            window.location.href = 'index.html';
+            localStorage.setItem("cancelToast", "true");
+            window.location.href = "index.html";
         }
+        // No action if "Nevermind" is selected
     });
 }
 
-// Get cookie value by name
+// Function to retrieve a specific cookie value by name
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
 }
 
-// Fetch data from Petapedia API
-async function fetchDataFromPetapediaAPI() {
-    const petapediaAPI = "https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi";
-    const token = getCookie("login");
-
-    try {
-        const response = await fetch(petapediaAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "login": token // Send token in the 'login' header
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched data from petapedia API:", data);
-
-        await sendDataToOwnAPI(data);
-    } catch (error) {
-        console.error("Error fetching data from petapedia API:", error.message);
-        Swal.fire("Error", "Failed to fetch data from petapedia's API.", "error");
-    }
-}
-
-// Send data to your backend
-async function sendDataToOwnAPI(data) {
-    const ownAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-
-    try {
-        const response = await fetch(ownAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log("Data successfully sent to backend:", result);
-
-        Swal.fire("Success", "Data successfully sent to backend.", "success");
-    } catch (error) {
-        console.error("Error sending data to backend:", error.message);
-        Swal.fire("Error", "Failed to send data to backend.", "error");
-    }
-}
-
-// Capture Longitude and Latitude on map click
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize map and set up event listeners
-    initializeMap();
-
+// Ensure DOM is loaded before adding event listeners
+document.addEventListener("DOMContentLoaded", () => {
     // Get form element and add event listener for submit
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
             event.preventDefault(); // Prevent default form submission
 
+            // Retrieve token from cookies
+            const token = getCookie("login");
             const longitude = parseFloat(document.getElementById("long").value);
             const latitude = parseFloat(document.getElementById("lat").value);
 
@@ -104,20 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Create request data
-            const requestData = {
-                longitude,
-                latitude,
-            };
+            const requestData = { longitude, latitude };
 
-            await fetchDataFromPetapediaAPI(); // Fetch and process data
+            // You can add logic here to process `requestData` using the token
         });
     }
 
     // Add event listener for the cancel button
-    const cancelButton = document.getElementById('cancelButton');
+    const cancelButton = document.getElementById("cancelButton");
     if (cancelButton) {
-        cancelButton.addEventListener('click', () => {
-            cancel();
-        });
+        cancelButton.addEventListener("click", cancel);
     }
 });
