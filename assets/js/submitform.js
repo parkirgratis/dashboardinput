@@ -33,6 +33,8 @@ async function sendFreeParkingData(long, lat) {
     const requestData = { longitude: long, latitude: lat };
 
     try {
+        console.log("Sending data to Free Parking API:", requestData);
+
         const response = await fetch(freeParkingAPI, {
             method: "POST",
             headers: {
@@ -42,12 +44,14 @@ async function sendFreeParkingData(long, lat) {
         });
 
         if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+            const errorMessage = await response.text();
+            console.error("Error from Free Parking API:", errorMessage);
+            Swal.fire("Error", `Failed to send data to Free Parking API: ${errorMessage}`, "error");
+            return;
         }
 
         const result = await response.json();
         console.log("Free parking data successfully sent:", result);
-
         Swal.fire("Success", "Free parking data successfully sent to backend.", "success");
     } catch (error) {
         console.error("Error sending free parking data:", error.message);
@@ -59,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
         form.addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault(); 
 
             const token = getCookie("login");
             const longitude = parseFloat(document.getElementById("long").value);
