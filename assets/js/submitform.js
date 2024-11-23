@@ -30,7 +30,7 @@ function getCookie(name) {
 async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
 
-    const requestData = { longitude: long, latitude: lat };
+    const requestData = [{ longitude: long, latitude: lat }]; 
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
