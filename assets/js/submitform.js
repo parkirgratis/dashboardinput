@@ -4,6 +4,7 @@ import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js
 // Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
+// Fungsi untuk menampilkan dialog konfirmasi pembatalan
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -19,6 +20,7 @@ async function cancel() {
     });
 }
 
+// Fungsi untuk mendapatkan cookie tertentu
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -29,8 +31,7 @@ function getCookie(name) {
 // Fungsi untuk mengirim data ke endpoint parkir gratis
 async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-
-    const requestData = [{ longitude: long, latitude: lat }]; 
+    const requestData = [{ longitude: long, latitude: lat }];
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -38,9 +39,9 @@ async function sendFreeParkingData(long, lat) {
         const response = await fetch(freeParkingAPI, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
-            body: JSON.stringify(requestData)
+            body: JSON.stringify(requestData),
         });
 
         if (!response.ok) {
@@ -59,47 +60,51 @@ async function sendFreeParkingData(long, lat) {
     }
 }
 
+// Fungsi untuk menangani pengiriman data
+async function handleSubmit(event) {
+    event.preventDefault();
+
+    const token = getCookie("login");
+    const longitude = parseFloat(document.getElementById("long").value);
+    const latitude = parseFloat(document.getElementById("lat").value);
+
+    if (isNaN(longitude) || isNaN(latitude)) {
+        Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
+        return;
+    }
+
+    const requestData = { long: longitude, lat: latitude };
+
+    try {
+        // Kirim data ke endpoint GIS Petapedia
+        const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "login": token,
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (gisResponse.ok) {
+            Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
+
+            // Kirim data ke endpoint parkir gratis
+            await sendFreeParkingData(longitude, latitude);
+        } else {
+            const errorMessage = await gisResponse.text();
+            Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
+        }
+    } catch (error) {
+        Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
+    }
+}
+
+// Event listener untuk form dan tombol cancel
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
-        form.addEventListener("submit", async function (event) {
-            event.preventDefault(); 
-
-            const token = getCookie("login");
-            const longitude = parseFloat(document.getElementById("long").value);
-            const latitude = parseFloat(document.getElementById("lat").value);
-
-            if (isNaN(longitude) || isNaN(latitude)) {
-                Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
-                return;
-            }
-
-            const requestData = { long: longitude, lat: latitude };
-
-            try {
-                // Kirim data ke endpoint GIS
-                const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "login": token,
-                    },
-                    body: JSON.stringify(requestData),
-                });
-
-                if (response.ok) {
-                    Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
-
-                    // Kirim data ke endpoint parkir gratis
-                    await sendFreeParkingData(longitude, latitude);
-                } else {
-                    const errorMessage = await response.text();
-                    Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
-                }
-            } catch (error) {
-                Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
-            }
-        });
+        form.addEventListener("submit", handleSubmit);
     }
 
     const cancelButton = document.getElementById("cancelButton");
