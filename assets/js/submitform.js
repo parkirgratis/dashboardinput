@@ -31,8 +31,7 @@ function getCookie(name) {
 // Fungsi untuk mengirim data ke endpoint parkir gratis
 async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    const token = getCookie("login");
-    const requestData = { longitude: long, latitude: lat };
+    const requestData = { long: parseFloat(long), lat: parseFloat(lat) }; // Sesuaikan nama field
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -40,8 +39,7 @@ async function sendFreeParkingData(long, lat) {
         const response = await fetch(freeParkingAPI, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                //"login": token, // Menambahkan token login pada header
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(requestData),
         });
@@ -49,16 +47,16 @@ async function sendFreeParkingData(long, lat) {
         if (!response.ok) {
             const errorMessage = await response.text();
             console.error("Error from Free Parking API:", errorMessage);
-            Swal.fire("Error", `Failed to send data to Free Parking API: ${errorMessage}`, "error");
+            Swal.fire("Error", `API Error: ${errorMessage}`, "error");
             return;
         }
 
         const result = await response.json();
-        console.log("Free parking data successfully sent:", result);
-        Swal.fire("Success", "Free parking data successfully sent to backend.", "success");
+        console.log("Data successfully sent:", result);
+        Swal.fire("Success", "Free parking data successfully sent.", "success");
     } catch (error) {
-        console.error("Error sending free parking data:", error.message);
-        Swal.fire("Error", "Failed to send free parking data to backend.", "error");
+        console.error("Network error:", error.message);
+        Swal.fire("Error", "Failed to send data to API.", "error");
     }
 }
 
@@ -75,7 +73,7 @@ async function handleSubmit(event) {
         return;
     }
 
-    const requestData = { long: longitude, lat: latitude };
+    const requestData = { long: longitude, lat: latitude }; // Pastikan nama field benar
 
     try {
         // Kirim data ke endpoint GIS Petapedia
@@ -92,7 +90,7 @@ async function handleSubmit(event) {
             Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
 
             // Kirim data ke endpoint parkir gratis
-            await sendFreeParkingData(longitude, latitude); // Token diambil langsung dari cookie
+            await sendFreeParkingData(longitude, latitude);
         } else {
             const errorMessage = await gisResponse.text();
             Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
