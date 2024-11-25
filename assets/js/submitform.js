@@ -41,14 +41,9 @@ async function sendFreeParkingData(long, lat) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "login": token, // Menambahkan token login pada header
+                //"login": token, // Menambahkan token login pada header
             },
             body: JSON.stringify(requestData),
-        });
-
-        console.log("Headers:", {
-            "Content-Type": "application/json",
-            "login": token,
         });
 
         if (!response.ok) {
@@ -92,11 +87,6 @@ async function handleSubmit(event) {
             },
             body: JSON.stringify(requestData),
         });
-        console.log("Headers:", {
-            "Content-Type": "application/json",
-            "login": token,
-        });
-        
 
         if (gisResponse.ok) {
             Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
