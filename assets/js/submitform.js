@@ -29,8 +29,9 @@ function getCookie(name) {
 }
 
 // Fungsi untuk mengirim data ke endpoint parkir gratis
-async function sendFreeParkingData(long, lat, token) {
+async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
+    const token = getCookie("login"); // Token login diambil dari cookie
     const requestData = { longitude: long, latitude: lat };
 
     try {
@@ -91,7 +92,7 @@ async function handleSubmit(event) {
             Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
 
             // Kirim data ke endpoint parkir gratis
-            await sendFreeParkingData(longitude, latitude, token); // Token diteruskan ke fungsi parkir gratis
+            await sendFreeParkingData(longitude, latitude); // Token diambil langsung dari cookie
         } else {
             const errorMessage = await gisResponse.text();
             Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
