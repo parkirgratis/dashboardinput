@@ -32,23 +32,28 @@ function getCookie(name) {
     return null;
 }
 
-// Fungsi untuk mengirim data ke endpoint parkir gratis
-async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
+// Fungsi untuk mengirim data ke endpoint Parkir Gratis
+async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    
-    if (!province || !district || !sub_district || !village) {
-        Swal.fire("Error", "Region data is incomplete. Please make sure all region fields are provided.", "error");
+
+    // Ambil data dari localStorage
+    const locationData = JSON.parse(localStorage.getItem("petapediaData"));
+
+    if (!locationData || !locationData.province || !locationData.district || !locationData.sub_district || !locationData.village) {
+        Swal.fire("Error", "Region data is incomplete. Please ensure Petapedia data is available.", "error");
         return;
     }
-    
-    const requestData = { 
-        long: parseFloat(long), 
+
+    const { province, district, sub_district, village } = locationData;
+
+    const requestData = {
+        long: parseFloat(long),
         lat: parseFloat(lat),
-        province: province,
-        district: district,
-        sub_district: sub_district,
-        village: village
-    };      
+        province,
+        district,
+        sub_district,
+        village,
+    };
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -69,8 +74,12 @@ async function sendFreeParkingData(long, lat, province, district, sub_district, 
         }
 
         const result = await response.json();
-        console.log("Data successfully sent:", result);
+        console.log("Data successfully sent to Free Parking API:", result);
         Swal.fire("Success", "Free parking data successfully sent.", "success");
+
+        // Hapus data dari localStorage setelah berhasil dikirim
+        localStorage.removeItem("petapediaData");
+
     } catch (error) {
         console.error("Network error:", error.message);
         Swal.fire("Error", "Failed to send data to API.", "error");
@@ -93,7 +102,7 @@ async function handleSubmit(event) {
     const requestData = { long: longitude, lat: latitude };
 
     try {
-        // Kirim data ke endpoint GIS Petapedia (dengan hanya longitude dan latitude)
+        // Kirim data ke endpoint GIS Petapedia
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -108,13 +117,15 @@ async function handleSubmit(event) {
 
             console.log("Hasil GIS:", gisResult);
 
-            // Ambil data lokasi dari respons Petapedia
             const { province, district, sub_district, village } = gisResult;
 
-            // Kirim data lengkap ke endpoint Parkir Gratis API
-            await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
+            // Simpan data ke localStorage
+            localStorage.setItem("petapediaData", JSON.stringify({ province, district, sub_district, village }));
 
-            Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
+            console.log("Data lokasi berhasil disimpan ke localStorage:", { province, district, sub_district, village });
+
+            // Kirim data ke Parkir Gratis API
+            await sendFreeParkingData(longitude, latitude);
 
         } else {
             const errorMessage = await gisResponse.json();
