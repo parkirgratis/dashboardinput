@@ -96,8 +96,9 @@ async function handleSubmit(event) {
             // Kirim data ke endpoint parkir gratis
             await sendFreeParkingData(longitude, latitude);
         } else {
-            const errorMessage = await gisResponse.text();
-            Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
+            const errorMessage = await gisResponse.json();
+    console.error("Failed to save data to GIS:", errorMessage);
+    Swal.fire("Error", `Failed to save data to GIS: ${JSON.stringify(errorMessage)}`, "error");  // Tampilkan error yang lebih informatif
         }
     } catch (error) {
         console.error("Error during submission:", error.message);
