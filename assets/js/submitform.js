@@ -33,9 +33,16 @@ function getCookie(name) {
 }
 
 // Fungsi untuk mengirim data ke endpoint parkir gratis
-async function sendFreeParkingData(long, lat) {
+async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    const requestData = { long: parseFloat(long), lat: parseFloat(lat) };
+    const requestData = { 
+        long: parseFloat(long), 
+        lat: parseFloat(lat),
+        province: province,
+        district: district,
+        sub_district: sub_district,
+        village: village
+    };
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -80,7 +87,7 @@ async function handleSubmit(event) {
     const requestData = { long: longitude, lat: latitude };
 
     try {
-        // Kirim data ke endpoint GIS Petapedia
+        // Kirim data ke endpoint GIS Petapedia (dengan hanya longitude dan latitude)
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -91,14 +98,20 @@ async function handleSubmit(event) {
         });
 
         if (gisResponse.ok) {
-            Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
+            const gisResult = await gisResponse.json();
 
-            // Kirim data ke endpoint parkir gratis
-            await sendFreeParkingData(longitude, latitude);
+            // Ambil data lokasi dari respons Petapedia
+            const { province, district, sub_district, village } = gisResult;
+
+            // Kirim data lengkap ke endpoint Parkir Gratis API
+            await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
+
+            Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
+
         } else {
             const errorMessage = await gisResponse.json();
-    console.error("Failed to save data to GIS:", errorMessage);
-    Swal.fire("Error", `Failed to save data to GIS: ${JSON.stringify(errorMessage)}`, "error");  // Tampilkan error yang lebih informatif
+            console.error("Failed to save data to GIS:", errorMessage);
+            Swal.fire("Error", `Failed to save data to GIS: ${JSON.stringify(errorMessage)}`, "error");
         }
     } catch (error) {
         console.error("Error during submission:", error.message);
