@@ -1,8 +1,10 @@
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
 import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
 
+// Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
+// Fungsi untuk menampilkan dialog konfirmasi pembatalan
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -18,16 +20,22 @@ async function cancel() {
     });
 }
 
+// Fungsi untuk mendapatkan cookie tertentu
 function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === name) {
+            return value;
+        }
+    }
     return null;
 }
 
+// Fungsi untuk mengirim data ke endpoint parkir gratis
 async function sendFreeParkingData(long, lat) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    const requestData = { longitude: parseFloat(long), latitude: parseFloat(lat) };
+    const requestData = { long: parseFloat(long), lat: parseFloat(lat) };
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -41,12 +49,14 @@ async function sendFreeParkingData(long, lat) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            Swal.fire("Error", `API Error: ${error.message || error}`, "error");
+            const errorMessage = await response.text();
+            console.error("Error from Free Parking API:", errorMessage);
+            Swal.fire("Error", `API Error: ${errorMessage}`, "error");
             return;
         }
 
         const result = await response.json();
+        console.log("Data successfully sent:", result);
         Swal.fire("Success", "Free parking data successfully sent.", "success");
     } catch (error) {
         console.error("Network error:", error.message);
@@ -54,30 +64,23 @@ async function sendFreeParkingData(long, lat) {
     }
 }
 
+// Fungsi untuk menangani pengiriman data
 async function handleSubmit(event) {
     event.preventDefault();
 
-    const submitButton = event.target.querySelector("button[type='submit']");
-    submitButton.disabled = true;
-    submitButton.textContent = "Sending...";
-
     const token = getCookie("login");
-    if (!token) {
-        Swal.fire("Error", "User is not authenticated. Please log in.", "error");
-        return;
-    }
-
     const longitude = parseFloat(document.getElementById("long").value);
     const latitude = parseFloat(document.getElementById("lat").value);
 
-    if (isNaN(longitude) || isNaN(latitude) || longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
-        Swal.fire("Error", "Please enter valid longitude and latitude values within range", "error");
+    if (isNaN(longitude) || isNaN(latitude)) {
+        Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
         return;
     }
 
-    const requestData = { longitude, latitude };
+    const requestData = { long: longitude, lat: latitude };
 
     try {
+        // Kirim data ke endpoint GIS Petapedia
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -89,20 +92,20 @@ async function handleSubmit(event) {
 
         if (gisResponse.ok) {
             Swal.fire("Success", "Data has been successfully saved to GIS!", "success");
+
+            // Kirim data ke endpoint parkir gratis
             await sendFreeParkingData(longitude, latitude);
         } else {
-            const error = await gisResponse.json();
-            Swal.fire("Error", `Failed to save data to GIS: ${error.message || error}`, "error");
+            const errorMessage = await gisResponse.text();
+            Swal.fire("Error", `Failed to save data to GIS: ${errorMessage}`, "error");
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error during submission:", error.message);
         Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = "Submit";
     }
 }
 
+// Event listener untuk form dan tombol cancel
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
