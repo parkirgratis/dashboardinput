@@ -35,6 +35,12 @@ function getCookie(name) {
 // Fungsi untuk mengirim data ke endpoint parkir gratis
 async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
+    
+    if (!province || !district || !sub_district || !village) {
+        Swal.fire("Error", "Region data is incomplete. Please make sure all region fields are provided.", "error");
+        return;
+    }
+    
     const requestData = { 
         long: parseFloat(long), 
         lat: parseFloat(lat),
@@ -42,7 +48,7 @@ async function sendFreeParkingData(long, lat, province, district, sub_district, 
         district: district,
         sub_district: sub_district,
         village: village
-    };
+    };      
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -99,6 +105,8 @@ async function handleSubmit(event) {
 
         if (gisResponse.ok) {
             const gisResult = await gisResponse.json();
+
+            console.log("Hasil GIS:", gisResult);
 
             // Ambil data lokasi dari respons Petapedia
             const { province, district, sub_district, village } = gisResult;
