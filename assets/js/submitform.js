@@ -32,29 +32,29 @@ function getCookie(name) {
     return null;
 }
 
-// Fungsi untuk menyimpan data ke localStorage atau cookie
+// Fungsi untuk mengirim data ke endpoint parkir gratis
 async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-
+    
     if (!province || !district || !sub_district || !village) {
         Swal.fire("Error", "Region data is incomplete. Please make sure all region fields are provided.", "error");
         return;
     }
-
-    const requestData = {
-        long: parseFloat(long),
+    
+    const requestData = { 
+        long: parseFloat(long), 
         lat: parseFloat(lat),
-        province,
-        district,
-        sub_district,
-        village,
-    };
+        province: province,
+        district: district,
+        sub_district: sub_district,
+        village: village
+    };      
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
 
         const response = await fetch(freeParkingAPI, {
-            method: "GET",
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -81,34 +81,19 @@ async function sendFreeParkingData(long, lat, province, district, sub_district, 
 async function handleSubmit(event) {
     event.preventDefault();
 
-    const token = document.cookie.split("; ").find(row => row.startsWith("login="))?.split("=")[1];
-    if (!token) {
-        Swal.fire("Error", "You are not logged in. Please log in to proceed.", "error");
-        window.location.href = "login.html";
-        return;
-    }
-
+    const token = getCookie("login");
     const longitude = parseFloat(document.getElementById("long").value);
     const latitude = parseFloat(document.getElementById("lat").value);
 
     if (isNaN(longitude) || isNaN(latitude)) {
-        Swal.fire("Error", "Please enter valid longitude and latitude values.", "error");
+        Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
         return;
     }
 
     const requestData = { long: longitude, lat: latitude };
 
-    Swal.fire({
-        title: "Processing...",
-        text: "Saving your data. Please wait.",
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        },
-    });
-
     try {
-        // Kirim data ke endpoint GIS Petapedia
+        // Kirim data ke endpoint GIS Petapedia (dengan hanya longitude dan latitude)
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -118,24 +103,27 @@ async function handleSubmit(event) {
             body: JSON.stringify(requestData),
         });
 
-        if (!gisResponse.ok) {
-            throw new Error("Failed to save data to GIS.");
+        if (gisResponse.ok) {
+            const gisResult = await gisResponse.json();
+
+            console.log("Hasil GIS:", gisResult);
+
+            // Ambil data lokasi dari respons Petapedia
+            const { province, district, sub_district, village } = gisResult;
+
+            // Kirim data lengkap ke endpoint Parkir Gratis API
+            await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
+
+            Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
+
+        } else {
+            const errorMessage = await gisResponse.json();
+            console.error("Failed to save data to GIS:", errorMessage);
+            Swal.fire("Error", `Failed to save data to GIS: ${JSON.stringify(errorMessage)}`, "error");
         }
-
-        const gisResult = await gisResponse.json();
-        console.log("Hasil GIS:", gisResult);
-
-        const { province, district, sub_district, village } = gisResult;
-
-        // Kirim data lengkap ke endpoint Parkir Gratis
-        await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
-
-        Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
     } catch (error) {
         console.error("Error during submission:", error.message);
-        Swal.fire("Error", error.message || "An unexpected error occurred. Please try again.", "error");
-    } finally {
-        Swal.close();
+        Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
     }
 }
 
