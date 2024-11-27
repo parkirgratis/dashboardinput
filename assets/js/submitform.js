@@ -32,6 +32,39 @@ function getCookie(name) {
     return null;
 }
 
+// Fungsi untuk menyimpan data ke localStorage atau cookie
+function saveToLocalStorageOrCookie(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        console.log(`Data saved to localStorage with key: ${key}`);
+    } catch (e) {
+        console.warn("localStorage is not available. Falling back to cookies.");
+        document.cookie = `${key}=${encodeURIComponent(JSON.stringify(data))}; path=/`;
+    }
+}
+
+// Fungsi untuk mengambil data dari localStorage atau cookie
+function getFromLocalStorageOrCookie(key) {
+    try {
+        const data = localStorage.getItem(key);
+        if (data) {
+            return JSON.parse(data);
+        }
+    } catch (e) {
+        console.warn("Failed to retrieve data from localStorage. Checking cookies.");
+    }
+
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+        const [cookieKey, value] = cookie.split("=");
+        if (cookieKey === key) {
+            return JSON.parse(decodeURIComponent(value));
+        }
+    }
+
+    return null;
+}
+
 // Fungsi untuk mengirim data ke endpoint Parkir Gratis
 async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
@@ -82,6 +115,12 @@ async function handleSubmit(event) {
     event.preventDefault();
 
     const token = getCookie("login");
+    if (!token) {
+        Swal.fire("Error", "You are not logged in. Please log in to proceed.", "error");
+        window.location.href = "login.html";
+        return;
+    }
+
     const longitude = parseFloat(document.getElementById("long").value);
     const latitude = parseFloat(document.getElementById("lat").value);
 
@@ -92,8 +131,17 @@ async function handleSubmit(event) {
 
     const requestData = { long: longitude, lat: latitude };
 
+    Swal.fire({
+        title: "Processing...",
+        text: "Saving your data. Please wait.",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+
     try {
-        // Kirim data ke endpoint GIS Petapedia (hanya longitude dan latitude)
+        // Kirim data ke endpoint GIS Petapedia
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -103,26 +151,34 @@ async function handleSubmit(event) {
             body: JSON.stringify(requestData),
         });
 
-        if (gisResponse.ok) {
-            const gisResult = await gisResponse.json();
+        if (!gisResponse.ok) {
+            throw new Error("Failed to save data to GIS.");
+        }
 
-            console.log("Hasil GIS:", gisResult);
+        const gisResult = await gisResponse.json();
+        console.log("Hasil GIS:", gisResult);
 
-            // Ambil data lokasi dari respons Petapedia
-            const { province, district, sub_district, village } = gisResult;
+        // Simpan data dari GIS ke localStorage atau cookie
+        saveToLocalStorageOrCookie("gisData", gisResult);
 
-            // Kirim data lengkap ke endpoint Parkir Gratis API
+        // Ambil data dari localStorage atau cookie
+        const storedData = getFromLocalStorageOrCookie("gisData");
+
+        if (storedData) {
+            const { province, district, sub_district, village } = storedData;
+
+            // Kirim data lengkap ke endpoint Parkir Gratis
             await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
 
             Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
         } else {
-            const errorMessage = await gisResponse.json();
-            console.error("Failed to save data to GIS:", errorMessage);
-            Swal.fire("Error", `Failed to save data to GIS: ${JSON.stringify(errorMessage)}`, "error");
+            throw new Error("Failed to retrieve stored data for Parkir Gratis API.");
         }
     } catch (error) {
         console.error("Error during submission:", error.message);
-        Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
+        Swal.fire("Error", error.message || "An unexpected error occurred. Please try again.", "error");
+    } finally {
+        Swal.close();
     }
 }
 
