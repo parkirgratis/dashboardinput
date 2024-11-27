@@ -86,7 +86,7 @@ async function handleSubmit(event) {
 
         const gisResponse = await fetch(APIs.GIS, {
             method: "POST",
-            headers: { "Content-Type": "application/json", login: token },
+            headers: { "Content-Type": "application/json", "login": token },
             body: JSON.stringify({ long: longitude, lat: latitude }),
         });
 
