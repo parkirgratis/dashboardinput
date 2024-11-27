@@ -32,23 +32,23 @@ function getCookie(name) {
     return null;
 }
 
-// Fungsi untuk mengirim data ke endpoint parkir gratis
+// Fungsi untuk mengirim data ke endpoint Parkir Gratis
 async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
     const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    
+
     if (!province || !district || !sub_district || !village) {
         Swal.fire("Error", "Region data is incomplete. Please make sure all region fields are provided.", "error");
         return;
     }
-    
-    const requestData = { 
-        long: parseFloat(long), 
+
+    const requestData = {
+        long: parseFloat(long),
         lat: parseFloat(lat),
-        province: province,
-        district: district,
-        sub_district: sub_district,
-        village: village
-    };      
+        province,
+        district,
+        sub_district,
+        village,
+    };
 
     try {
         console.log("Sending data to Free Parking API:", requestData);
@@ -86,14 +86,14 @@ async function handleSubmit(event) {
     const latitude = parseFloat(document.getElementById("lat").value);
 
     if (isNaN(longitude) || isNaN(latitude)) {
-        Swal.fire("Error", "Please enter valid longitude and latitude values", "error");
+        Swal.fire("Error", "Please enter valid longitude and latitude values.", "error");
         return;
     }
 
     const requestData = { long: longitude, lat: latitude };
 
     try {
-        // Kirim data ke endpoint GIS Petapedia (dengan hanya longitude dan latitude)
+        // Kirim data ke endpoint GIS Petapedia (hanya longitude dan latitude)
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -115,7 +115,6 @@ async function handleSubmit(event) {
             await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
 
             Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
-
         } else {
             const errorMessage = await gisResponse.json();
             console.error("Failed to save data to GIS:", errorMessage);
