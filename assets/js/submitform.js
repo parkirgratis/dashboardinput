@@ -31,52 +31,6 @@ function getCookie(name) {
     }
     return null;
 }
-
-// Fungsi untuk mengirim data ke endpoint parkir gratis
-async function sendFreeParkingData(long, lat, province, district, sub_district, village) {
-    const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-    
-    if (!province || !district || !sub_district || !village) {
-        Swal.fire("Error", "Region data is incomplete. Please make sure all region fields are provided.", "error");
-        return;
-    }
-    
-    const requestData = { 
-        long: parseFloat(long), 
-        lat: parseFloat(lat),
-        province: province,
-        district: district,
-        sub_district: sub_district,
-        village: village
-    };      
-
-    try {
-        console.log("Sending data to Free Parking API:", requestData);
-
-        const response = await fetch(freeParkingAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-            const errorMessage = await response.text();
-            console.error("Error from Free Parking API:", errorMessage);
-            Swal.fire("Error", `API Error: ${errorMessage}`, "error");
-            return;
-        }
-
-        const result = await response.json();
-        console.log("Data successfully sent:", result);
-        Swal.fire("Success", "Free parking data successfully sent.", "success");
-    } catch (error) {
-        console.error("Network error:", error.message);
-        Swal.fire("Error", "Failed to send data to API.", "error");
-    }
-}
-
 // Fungsi untuk menangani pengiriman data
 async function handleSubmit(event) {
     event.preventDefault();
@@ -124,58 +78,6 @@ async function handleSubmit(event) {
     } catch (error) {
         console.error("Error during submission:", error.message);
         Swal.fire("Error", "An unexpected error occurred. Please try again.", "error");
-    }
-}
-
-// Fungsi untuk menyimpan data ke Parkir Gratis
-async function handleSave() {
-    const longitude = parseFloat(document.getElementById("long").value);
-    const latitude = parseFloat(document.getElementById("lat").value);
-    const province = document.getElementById("province").value;
-    const district = document.getElementById("district").value;
-    const sub_district = document.getElementById("sub_district").value;
-    const village = document.getElementById("village").value;
-
-    if (!province || !district || !sub_district || !village) {
-        Swal.fire("Error", "Region data is incomplete. Please make sure all fields are filled.", "error");
-        return;
-    }
-
-    const requestData = { 
-        long: longitude, 
-        lat: latitude,
-        province,
-        district,
-        sub_district,
-        village
-    };
-
-    const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
-
-    try {
-        console.log("Sending data to Free Parking API:", requestData);
-
-        const response = await fetch(freeParkingAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (!response.ok) {
-            const errorMessage = await response.text();
-            console.error("Error from Free Parking API:", errorMessage);
-            Swal.fire("Error", `API Error: ${errorMessage}`, "error");
-            return;
-        }
-
-        const result = await response.json();
-        console.log("Data successfully sent:", result);
-        Swal.fire("Success", "Data successfully saved to Free Parking API!", "success");
-    } catch (error) {
-        console.error("Network error:", error.message);
-        Swal.fire("Error", "Failed to save data to API.", "error");
     }
 }
 
