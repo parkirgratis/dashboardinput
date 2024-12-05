@@ -85,7 +85,7 @@ async function insertRegionDataParking() {
     const regionData = {
         province: document.getElementById("province").value,
         district: document.getElementById("district").value,
-        subDistrict: document.getElementById("sub_district").value,
+        sub_district: document.getElementById("sub_district").value,
         village: document.getElementById("village").value,
         latitude: parseFloat(document.getElementById("lat").value),
         longitude: parseFloat(document.getElementById("long").value),
