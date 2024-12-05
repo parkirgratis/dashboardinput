@@ -90,7 +90,16 @@ async function insertRegionDataParking() {
         latitude: parseFloat(document.getElementById("lat").value),
         longitude: parseFloat(document.getElementById("long").value),
     };
-
+    if (
+        !regionData.province || 
+        !regionData.district || 
+        !regionData.sub_district || 
+        !regionData.village
+    ) {
+        Swal.fire("Error", "Semua field wajib diisi!", "error");
+        return;
+    }
+    
     if (
         isNaN(regionData.latitude) || regionData.latitude < -90 || regionData.latitude > 90 || 
         isNaN(regionData.longitude) || regionData.longitude < -180 || regionData.longitude > 180
