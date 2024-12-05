@@ -32,7 +32,7 @@ function getCookie(name) {
     return null;
 }
 // Fungsi untuk menangani pengiriman data
-async function handleSubmit(event) {
+async function handleSubmitPetapedia(event) {
     event.preventDefault();
 
     const token = getCookie("login");
@@ -81,16 +81,56 @@ async function handleSubmit(event) {
     }
 }
 
+async function insertRegionDataParking() {
+    const regionData = {
+        province: document.getElementById("province").value,
+        district: document.getElementById("district").value,
+        subDistrict: document.getElementById("sub_district").value,
+        village: document.getElementById("village").value,
+        latitude: parseFloat(document.getElementById("lat").value),
+        longitude: parseFloat(document.getElementById("long").value),
+        border: {
+            type: "Point",
+            coordinates: [
+                [
+                    [parseFloat(document.getElementById("long").value), parseFloat(document.getElementById("lat").value)]
+                ]
+            ]
+        }
+    };
+
+    try {
+        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(regionData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert("Data berhasil disimpan: " + JSON.stringify(result));
+        } else {
+            alert("Error: " + JSON.stringify(result));
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("Terjadi kesalahan jaringan: " + error.message);
+    }
+}
+
+
 // Event listener untuk form dan tombol cancel
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
-        form.addEventListener("submit", handleSubmit);
+        form.addEventListener("submit", handleSubmitPetapedia);
     }
 
     const saveButton = document.getElementById("saveButton");
     if (saveButton) {
-        saveButton.addEventListener("click", handleSave);
+        saveButton.addEventListener("click", insertRegionDataParking);
     }
     
     const cancelButton = document.getElementById("cancelButton");
