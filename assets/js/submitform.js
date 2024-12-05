@@ -93,7 +93,7 @@ async function handleSubmit(event) {
     const requestData = { long: longitude, lat: latitude };
 
     try {
-        // Kirim data ke endpoint GIS Petapedia (dengan hanya longitude dan latitude)
+        // Kirim data ke Petapedia API
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -108,13 +108,13 @@ async function handleSubmit(event) {
 
             console.log("Hasil GIS:", gisResult);
 
-            // Ambil data lokasi dari respons Petapedia
-            const { province, district, sub_district, village } = gisResult;
+            // Isi otomatis form dengan data dari Petapedia
+            document.getElementById("province").value = gisResult.province || "";
+            document.getElementById("district").value = gisResult.district || "";
+            document.getElementById("sub_district").value = gisResult.sub_district || "";
+            document.getElementById("village").value = gisResult.village || "";
 
-            // Kirim data lengkap ke endpoint Parkir Gratis API
-            await sendFreeParkingData(longitude, latitude, province, district, sub_district, village);
-
-            Swal.fire("Success", "Data has been successfully saved to GIS and Free Parking API!", "success");
+            Swal.fire("Success", "Data berhasil diisi dari GIS Petapedia. Silakan klik Save untuk menyimpan ke Parkir Gratis.", "success");
 
         } else {
             const errorMessage = await gisResponse.json();
@@ -127,6 +127,58 @@ async function handleSubmit(event) {
     }
 }
 
+// Fungsi untuk menyimpan data ke Parkir Gratis
+async function handleSave() {
+    const longitude = parseFloat(document.getElementById("long").value);
+    const latitude = parseFloat(document.getElementById("lat").value);
+    const province = document.getElementById("province").value;
+    const district = document.getElementById("district").value;
+    const sub_district = document.getElementById("sub_district").value;
+    const village = document.getElementById("village").value;
+
+    if (!province || !district || !sub_district || !village) {
+        Swal.fire("Error", "Region data is incomplete. Please make sure all fields are filled.", "error");
+        return;
+    }
+
+    const requestData = { 
+        long: longitude, 
+        lat: latitude,
+        province,
+        district,
+        sub_district,
+        village
+    };
+
+    const freeParkingAPI = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi";
+
+    try {
+        console.log("Sending data to Free Parking API:", requestData);
+
+        const response = await fetch(freeParkingAPI, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.error("Error from Free Parking API:", errorMessage);
+            Swal.fire("Error", `API Error: ${errorMessage}`, "error");
+            return;
+        }
+
+        const result = await response.json();
+        console.log("Data successfully sent:", result);
+        Swal.fire("Success", "Data successfully saved to Free Parking API!", "success");
+    } catch (error) {
+        console.error("Network error:", error.message);
+        Swal.fire("Error", "Failed to save data to API.", "error");
+    }
+}
+
 // Event listener untuk form dan tombol cancel
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
@@ -134,6 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
         form.addEventListener("submit", handleSubmit);
     }
 
+    const saveButton = document.getElementById("saveButton");
+    if (saveButton) {
+        saveButton.addEventListener("click", handleSave);
+    }
+    
     const cancelButton = document.getElementById("cancelButton");
     if (cancelButton) {
         cancelButton.addEventListener("click", cancel);
