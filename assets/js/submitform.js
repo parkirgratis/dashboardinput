@@ -99,6 +99,14 @@ async function insertRegionDataParking() {
         }
     };
 
+    if (isNaN(regionData.latitude) || regionData.latitude === 0 || 
+        isNaN(regionData.longitude) || regionData.longitude === 0) {
+        Swal.fire("Error", "Please enter valid latitude and longitude values.", "error");
+        return;
+    }
+
+    console.log("Region Data to be sent:", JSON.stringify(regionData));
+
     try {
         const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
             method: "POST",
@@ -110,13 +118,14 @@ async function insertRegionDataParking() {
 
         const result = await response.json();
         if (response.ok) {
-            alert("Data berhasil disimpan: " + JSON.stringify(result));
+            Swal.fire("Success", "Data berhasil disimpan: " + JSON.stringify(result), "success");
         } else {
-            alert("Error: " + JSON.stringify(result));
+            console.error("Error response:", result);
+            Swal.fire("Error", `Failed to save data: ${JSON.stringify(result)}`, "error");
         }
     } catch (error) {
         console.error("Network error:", error);
-        alert("Terjadi kesalahan jaringan: " + error.message);
+        Swal.fire("Error", "Terjadi kesalahan jaringan: " + error.message, "error");
     }
 }
 
