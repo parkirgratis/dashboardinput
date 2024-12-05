@@ -89,19 +89,13 @@ async function insertRegionDataParking() {
         village: document.getElementById("village").value,
         latitude: parseFloat(document.getElementById("lat").value),
         longitude: parseFloat(document.getElementById("long").value),
-        border: {
-            type: "Point",
-            coordinates: [
-                [
-                    [parseFloat(document.getElementById("long").value), parseFloat(document.getElementById("lat").value)]
-                ]
-            ]
-        }
     };
 
-    if (isNaN(regionData.latitude) || regionData.latitude === 0 || 
-        isNaN(regionData.longitude) || regionData.longitude === 0) {
-        Swal.fire("Error", "Please enter valid latitude and longitude values.", "error");
+    if (
+        isNaN(regionData.latitude) || regionData.latitude < -90 || regionData.latitude > 90 || 
+        isNaN(regionData.longitude) || regionData.longitude < -180 || regionData.longitude > 180
+    ) {
+        Swal.fire("Error", "Latitude harus antara -90 dan 90, dan Longitude antara -180 dan 180.", "error");
         return;
     }
 
