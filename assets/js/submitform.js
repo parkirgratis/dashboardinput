@@ -100,11 +100,13 @@ async function insertRegionDataParking() {
         return;
     }
     
-    if (
-        isNaN(regionData.latitude) || regionData.latitude < -90 || regionData.latitude > 90 || 
-        isNaN(regionData.longitude) || regionData.longitude < -180 || regionData.longitude > 180
-    ) {
-        Swal.fire("Error", "Latitude harus antara -90 dan 90, dan Longitude antara -180 dan 180.", "error");
+    if (isNaN(longitude) || isNaN(latitude)) {
+        Swal.fire("Error", "Longitude dan Latitude harus berupa angka!", "error");
+        return;
+    }
+
+    if (!longitude || !latitude) {
+        Swal.fire("Error", "Longitude dan Latitude harus diisi!", "error");
         return;
     }
 
