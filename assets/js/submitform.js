@@ -4,7 +4,6 @@ import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js
 // Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
-// Fungsi untuk menampilkan dialog konfirmasi pembatalan
 async function cancel() {
     Swal.fire({
         title: "Are you sure?",
@@ -20,7 +19,6 @@ async function cancel() {
     });
 }
 
-// Fungsi untuk mendapatkan cookie tertentu
 function getCookie(name) {
     const cookies = document.cookie.split("; ");
     for (const cookie of cookies) {
@@ -31,7 +29,7 @@ function getCookie(name) {
     }
     return null;
 }
-// Fungsi untuk menangani pengiriman data
+
 async function handleSubmitPetapedia(event) {
     event.preventDefault();
 
@@ -47,7 +45,7 @@ async function handleSubmitPetapedia(event) {
     const requestData = { long: longitude, lat: latitude };
 
     try {
-        // Kirim data ke Petapedia API
+        
         const gisResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/petabackend/data/gis/lokasi", {
             method: "POST",
             headers: {
@@ -62,7 +60,6 @@ async function handleSubmitPetapedia(event) {
 
             console.log("Hasil GIS:", gisResult);
 
-            // Isi otomatis form dengan data dari Petapedia
             document.getElementById("province").value = gisResult.province || "";
             document.getElementById("district").value = gisResult.district || "";
             document.getElementById("sub_district").value = gisResult.sub_district || "";
@@ -89,7 +86,12 @@ async function insertRegionDataParking() {
         village: document.getElementById("village").value,
         latitude: parseFloat(document.getElementById("lat").value),
         longitude: parseFloat(document.getElementById("long").value),
+        nama_tempat: document.getElementById("nama_tempat").value,
+        lokasi: document.getElementById("lokasi").value,
+        fasilitas: document.getElementById("fasilitas").value,
     };
+
+
     if (
         !regionData.province || 
         !regionData.district || 
@@ -100,17 +102,46 @@ async function insertRegionDataParking() {
         return;
     }
     
-    if (isNaN(longitude) || isNaN(latitude)) {
+    if (isNaN(regionData.longitude) || isNaN(regionData.latitude)) {
         Swal.fire("Error", "Longitude dan Latitude harus berupa angka!", "error");
         return;
     }
 
-    if (!longitude || !latitude) {
+    if (!regionData.longitude || !regionData.latitude) {
         Swal.fire("Error", "Longitude dan Latitude harus diisi!", "error");
         return;
     }
 
-    console.log("Region Data to be sent:", JSON.stringify(regionData));
+    const imageFile = document.getElementById("gambar").files[0];
+    let gambarUrl = "";
+
+    if (imageFile) {
+    
+        const formData = new FormData();
+        formData.append("file", imageFile);
+
+        try {
+            
+            const imageResponse = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/upload/img", {
+                method: "POST",
+                body: formData
+            });
+
+            const imageResult = await imageResponse.json();
+            if (imageResponse.ok && imageResult.url) {
+                gambarUrl = imageResult.url; 
+            } else {
+                Swal.fire("Error", "Gagal mengupload gambar!", "error");
+                return;
+            }
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            Swal.fire("Error", "Terjadi kesalahan saat mengupload gambar: " + error.message, "error");
+            return;
+        }
+    }
+
+    regionData.gambar = gambarUrl;
 
     try {
         const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
@@ -135,7 +166,6 @@ async function insertRegionDataParking() {
 }
 
 
-// Event listener untuk form dan tombol cancel
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("locationForm");
     if (form) {
