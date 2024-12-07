@@ -118,7 +118,7 @@ async function insertRegionDataParking() {
     if (imageFile) {
     
         const formData = new FormData();
-        formData.append("file", imageFile);
+        formData.append("img", imageFile);
 
         try {
             
