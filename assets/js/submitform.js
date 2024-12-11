@@ -91,6 +91,7 @@ async function uploadImage() {
     }
 }
 
+
 async function insertRegionDataParking() {
     try {
         const regionData = {
@@ -112,7 +113,7 @@ async function insertRegionDataParking() {
 
         regionData.gambar = await uploadImage();
 
-        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
+        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/tampat-parkir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(regionData),
