@@ -83,14 +83,19 @@ async function uploadImage() {
 
     const targetUrl = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/upload/img";
     const response = await fetch(targetUrl, { method: "POST", body: formData });
-    console.log(await response.text());
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Upload failed:", errorText);
+        throw new Error(`Failed to upload image: ${errorText}`);
+    }
 
     const result = await response.json();
-    if (response.ok && result.url) {
+    if (result.url) {
         return result.url;
     } else {
-        console.error("Upload failed:", result);
-        throw new Error("Failed to upload image.");
+        console.error("Upload response missing 'url':", result);
+        throw new Error("Image upload failed: URL not found in response.");
     }
 }
 
