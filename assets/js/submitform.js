@@ -81,7 +81,7 @@ async function uploadImage() {
     formData.append("img", imageInput.files[0]);
 
     const targetUrl = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/upload/img";
-    const response = await fetch(targetUrl, { method: "POST", body: formData });
+    const response = await fetch(targetUrl);
 
     if (response.ok) {
         const result = await response.json();
@@ -103,7 +103,7 @@ async function insertRegionDataParking() {
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
             fasilitas: document.getElementById("fasilitas").value,
-            gambar: document.getElementById("gambar").value,
+            gambar: document.getElementById("gambar"),
         };
 
         if (Object.values(regionData).some((value) => !value)) {
@@ -113,7 +113,7 @@ async function insertRegionDataParking() {
 
         regionData.gambar = await uploadImage();
 
-        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
+        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/tempat-parkir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(regionData),
