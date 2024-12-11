@@ -1,6 +1,13 @@
 import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
 import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
-
+import {
+    setInner,
+    show,
+    hide,
+    getValue,
+    getFileSize
+  } from "https://cdn.jsdelivr.net/gh/jscroot/element@0.0.6/croot.js";
+  
 // Add SweetAlert2 CSS
 addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
 
@@ -82,6 +89,7 @@ async function insertRegionDataParking() {
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
             fasilitas: document.getElementById("fasilitas").value,
+            gambar: document.getElementById("gambar"),
         };
 
         if (Object.values(regionData).some((value) => !value)) {
@@ -104,6 +112,38 @@ async function insertRegionDataParking() {
     } catch (error) {
         Swal.fire("Error", `An error occurred: ${error.message}`, "error");
     }
+}
+
+window.uploadImage = uploadImage;
+
+const target_url = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/upload/img";
+
+function uploadImage() {
+    const gambar = document.getElementById('gambar');
+    if (!igambar || gambar.files.length === 0) {
+        Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text: "Silakan pilih file gambar terlebih dahulu"
+        });
+        return;
+    }
+    const gambarinput = document.getElementById('gambar');
+    if (gambarinput) {
+        hide("gambar");
+    } else {
+        console.error("Element with ID 'gambar' not found");
+    }
+    let besar = getFileSize("gambar");
+    setInner("isi", besar);
+    
+    postFile(target_url, "gambar", "img", renderToHtml);
+}
+
+function renderToHtml(result) {
+    console.log(result);
+    setInner("isi", "https://parkirgratis.github.io/filegambar/" + result.response);
+    show("gambar");
 }
 
 
