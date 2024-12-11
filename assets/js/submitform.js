@@ -103,6 +103,7 @@ async function insertRegionDataParking() {
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
             fasilitas: document.getElementById("fasilitas").value,
+            gambar: document.getElementById("gambar").value,
         };
 
         if (Object.values(regionData).some((value) => !value)) {
