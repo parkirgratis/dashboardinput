@@ -91,13 +91,14 @@ async function uploadImage() {
     }
 
     const result = await response.json();
-    if (result.url) {
-        return result.url;
+    if (result.response) {
+        return result.response;
     } else {
-        console.error("Upload response missing 'url':", result);
-        throw new Error("Image upload failed: URL not found in response.");
+        console.error("Upload response missing 'response':", result);
+        throw new Error("Image upload failed: response field not found in response.");
     }
 }
+
 
 async function insertRegionDataParking() {
     try {
