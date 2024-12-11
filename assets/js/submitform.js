@@ -73,6 +73,7 @@ async function handleSubmitPetapedia(event) {
 async function uploadImage() {
     const imageInput = document.getElementById("gambar");
     if (!imageInput || imageInput.files.length === 0) {
+        console.error("No image file selected.");
         Swal.fire("Error", "Please select an image to upload.", "error");
         throw new Error("No image selected.");
     }
@@ -82,15 +83,16 @@ async function uploadImage() {
 
     const targetUrl = "https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/upload/img";
     const response = await fetch(targetUrl, { method: "POST", body: formData });
+    console.log(await response.text());
 
-    if (response.ok) {
-        const result = await response.json();
+    const result = await response.json();
+    if (response.ok && result.url) {
         return result.url;
     } else {
+        console.error("Upload failed:", result);
         throw new Error("Failed to upload image.");
     }
 }
-
 
 async function insertRegionDataParking() {
     try {
@@ -106,13 +108,14 @@ async function insertRegionDataParking() {
             fasilitas: document.getElementById("fasilitas").value,
         };
 
+        
         if (Object.values(regionData).some((value) => !value)) {
             Swal.fire("Error", "All fields are required.", "error");
             return;
         }
-
         regionData.gambar = await uploadImage();
 
+        
         const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/tampat-parkir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -123,11 +126,14 @@ async function insertRegionDataParking() {
             const result = await response.json();
             Swal.fire("Success", `Data successfully saved: ${JSON.stringify(result)}`, "success");
         } else {
+            console.error("Failed to save data:", await response.text());
             Swal.fire("Error", "Failed to save data.", "error");
         }
     } catch (error) {
+        console.error("An error occurred:", error);
         Swal.fire("Error", `An error occurred: ${error.message}`, "error");
     }
+    
 }
 
 
