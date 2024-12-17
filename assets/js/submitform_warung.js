@@ -76,7 +76,7 @@ async function handleSubmitPetapedia(event) {
     }
 }
 
-async function insertRegionDataParking() {
+async function insertRegionDataWarung() {
     try {
         const regionData = {
             province: document.getElementById("province").value,
@@ -87,8 +87,8 @@ async function insertRegionDataParking() {
             lon: parseFloat(document.getElementById("long").value),
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
-            fasilitas: document.getElementById("fasilitas").value,
-            gambar: document.getElementById("gambar").value,
+            metode_pembayaran: document.getElementById("metode_pembayaran").value,
+            foto_pratinjau: document.getElementById("gambar").value,
         };
 
         if (Object.values(regionData).some((value) => !value)) {
@@ -96,7 +96,7 @@ async function insertRegionDataParking() {
             return;
         }
 
-        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/lokasi", {
+        const response = await fetch("https://asia-southeast2-awangga.cloudfunctions.net/parkirgratis/data/gis/warung", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(regionData),
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const saveButton = document.getElementById("saveButton");
     if (saveButton) {
-        saveButton.addEventListener("click", insertRegionDataParking);
+        saveButton.addEventListener("click", insertRegionDataWarung);
     }
     
     const cancelButton = document.getElementById("cancelButton");
