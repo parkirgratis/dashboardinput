@@ -87,7 +87,7 @@ async function insertRegionDataWarung() {
             lon: parseFloat(document.getElementById("long").value),
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
-            metode_pembayaran: document.getElementById("metode_pembayaran").value,
+            metode_pembayaran: document.getElementById("metode_pembayaran").value.split(","),
             gambar: document.getElementById("gambar").value,
         };
 
