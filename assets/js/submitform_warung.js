@@ -88,7 +88,7 @@ async function insertRegionDataWarung() {
             nama_tempat: document.getElementById("nama_tempat").value,
             lokasi: document.getElementById("lokasi").value,
             metode_pembayaran: document.getElementById("metode_pembayaran").value,
-            foto_pratinjau: document.getElementById("gambar").value,
+            gambar: document.getElementById("gambar").value,
         };
 
         if (Object.values(regionData).some((value) => !value)) {
